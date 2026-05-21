@@ -67,6 +67,7 @@ namespace EquipmentMonitorDay1
             this.断开设备ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.帮助ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.保存设置ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -414,6 +415,7 @@ namespace EquipmentMonitorDay1
             this.文件ToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.导入配置ToolStripMenuItem1,
             this.导出数据ToolStripMenuItem,
+            this.保存设置ToolStripMenuItem,
             this.退出ToolStripMenuItem});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(58, 21);
@@ -451,13 +453,13 @@ namespace EquipmentMonitorDay1
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(124, 22);
             this.toolStripMenuItem2.Text = "连接设备";
             // 
             // 断开设备ToolStripMenuItem
             // 
             this.断开设备ToolStripMenuItem.Name = "断开设备ToolStripMenuItem";
-            this.断开设备ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.断开设备ToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.断开设备ToolStripMenuItem.Text = "断开设备";
             // 
             // 帮助ToolStripMenuItem
@@ -471,9 +473,16 @@ namespace EquipmentMonitorDay1
             // 关于ToolStripMenuItem
             // 
             this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
-            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(100, 22);
             this.关于ToolStripMenuItem.Text = "关于";
             this.关于ToolStripMenuItem.Click += new System.EventHandler(this.关于ToolStripMenuItem_Click);
+            // 
+            // 保存设置ToolStripMenuItem
+            // 
+            this.保存设置ToolStripMenuItem.Name = "保存设置ToolStripMenuItem";
+            this.保存设置ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.保存设置ToolStripMenuItem.Text = "保存设置";
+            this.保存设置ToolStripMenuItem.Click += new System.EventHandler(this.保存设置ToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -548,6 +557,7 @@ namespace EquipmentMonitorDay1
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem 断开设备ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 保存设置ToolStripMenuItem;
     }
 }
 
