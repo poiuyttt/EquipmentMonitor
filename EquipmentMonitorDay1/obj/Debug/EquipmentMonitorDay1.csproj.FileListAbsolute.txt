@@ -1,0 +1,10 @@
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe.config
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.pdb
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.AssemblyReference.cache
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.Properties.Resources.resources
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.GenerateResource.cache
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.CoreCompileInputs.cache
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.exe
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.pdb
+D:\C#\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.MainForm.resources
