@@ -57,7 +57,5 @@ namespace EquipmentMonitorDay1
                     break;
             }
         }
-
-
     }
 }

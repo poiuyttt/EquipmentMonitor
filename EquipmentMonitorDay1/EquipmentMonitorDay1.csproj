@@ -57,6 +57,12 @@
       <DependentUpon>DeviceCard.cs</DependentUpon>
     </Compile>
     <Compile Include="DeviceData.cs" />
+    <Compile Include="DeviceEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DeviceEditForm.Designer.cs">
+      <DependentUpon>DeviceEditForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -67,6 +73,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="DeviceCard.resx">
       <DependentUpon>DeviceCard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DeviceEditForm.resx">
+      <DependentUpon>DeviceEditForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
