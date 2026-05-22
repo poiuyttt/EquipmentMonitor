@@ -32,15 +32,17 @@ namespace EquipmentMonitorDay1
         private void InitializeComponent()
         {
             this._panelBackground = new System.Windows.Forms.Panel();
-            this._lblStatus = new System.Windows.Forms.Label();
             this._lblValue = new System.Windows.Forms.Label();
             this._lblDeviceName = new System.Windows.Forms.Label();
+            this._indicator = new System.Windows.Forms.Panel();
+            this._lblStatusText = new System.Windows.Forms.Label();
             this._panelBackground.SuspendLayout();
             this.SuspendLayout();
             // 
             // _panelBackground
             // 
-            this._panelBackground.Controls.Add(this._lblStatus);
+            this._panelBackground.Controls.Add(this._lblStatusText);
+            this._panelBackground.Controls.Add(this._indicator);
             this._panelBackground.Controls.Add(this._lblValue);
             this._panelBackground.Controls.Add(this._lblDeviceName);
             this._panelBackground.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -49,24 +51,14 @@ namespace EquipmentMonitorDay1
             this._panelBackground.Size = new System.Drawing.Size(200, 56);
             this._panelBackground.TabIndex = 0;
             // 
-            // _lblStatus
-            // 
-            this._lblStatus.AutoSize = true;
-            this._lblStatus.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold);
-            this._lblStatus.Location = new System.Drawing.Point(3, 40);
-            this._lblStatus.Name = "_lblStatus";
-            this._lblStatus.Size = new System.Drawing.Size(41, 12);
-            this._lblStatus.TabIndex = 3;
-            this._lblStatus.Text = "label3";
-            // 
             // _lblValue
             // 
             this._lblValue.AutoSize = true;
             this._lblValue.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Bold);
             this._lblValue.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
-            this._lblValue.Location = new System.Drawing.Point(3, 18);
+            this._lblValue.Location = new System.Drawing.Point(29, 18);
             this._lblValue.Name = "_lblValue";
-            this._lblValue.Size = new System.Drawing.Size(41, 12);
+            this._lblValue.Size = new System.Drawing.Size(61, 16);
             this._lblValue.TabIndex = 2;
             this._lblValue.Text = "label2";
             // 
@@ -74,11 +66,27 @@ namespace EquipmentMonitorDay1
             // 
             this._lblDeviceName.AutoSize = true;
             this._lblDeviceName.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold);
-            this._lblDeviceName.Location = new System.Drawing.Point(3, 3);
+            this._lblDeviceName.Location = new System.Drawing.Point(30, 6);
             this._lblDeviceName.Name = "_lblDeviceName";
-            this._lblDeviceName.Size = new System.Drawing.Size(41, 12);
+            this._lblDeviceName.Size = new System.Drawing.Size(47, 12);
             this._lblDeviceName.TabIndex = 1;
             this._lblDeviceName.Text = "label1";
+            // 
+            // _indicator
+            // 
+            this._indicator.Location = new System.Drawing.Point(8, 37);
+            this._indicator.Name = "_indicator";
+            this._indicator.Size = new System.Drawing.Size(16, 16);
+            this._indicator.TabIndex = 4;
+            // 
+            // _lblStatusText
+            // 
+            this._lblStatusText.AutoSize = true;
+            this._lblStatusText.Location = new System.Drawing.Point(30, 41);
+            this._lblStatusText.Name = "_lblStatusText";
+            this._lblStatusText.Size = new System.Drawing.Size(41, 12);
+            this._lblStatusText.TabIndex = 5;
+            this._lblStatusText.Text = "label1";
             // 
             // DeviceCard
             // 
@@ -99,6 +107,7 @@ namespace EquipmentMonitorDay1
         private System.Windows.Forms.Panel _panelBackground;
         private System.Windows.Forms.Label _lblValue;
         private System.Windows.Forms.Label _lblDeviceName;
-        private System.Windows.Forms.Label _lblStatus;
+        private Label _lblStatusText;
+        private Panel _indicator;
     }
 }

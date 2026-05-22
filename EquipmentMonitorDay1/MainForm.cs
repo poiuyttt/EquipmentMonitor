@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
 namespace EquipmentMonitorDay1
 {
@@ -34,6 +38,14 @@ namespace EquipmentMonitorDay1
         // 状态栏里的时间标签，Timer 要更新它，所以定义为字段
         private ToolStripStatusLabel _lblTime;
         private ToolStripStatusLabel _lblPLC;
+
+        // ====== 生产者-消费者 ======
+        private ConcurrentQueue<DeviceData> _dataQueue; // 线程安全队列
+        private CancellationTokenSource _cts; // 取消令牌
+        private Task _producerTask; // 后台采集任务
+
+
+        // ===========================
 
         public MainForm()
         {
@@ -259,8 +271,6 @@ namespace EquipmentMonitorDay1
 
             flowLayoutDeviceCards.Controls.Add(card);
 
-
-
             // ====== 界面美化 ======
             // 主窗体背景色
             this.BackColor = Color.FromArgb(240, 240, 240);
@@ -276,7 +286,11 @@ namespace EquipmentMonitorDay1
             dataGridView1.EnableHeadersVisualStyles = false;
             dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(0, 70, 130);
             dataGridView1.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("微软雅黑", 9F, FontStyle.Bold);
+            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font(
+                "微软雅黑",
+                9F,
+                FontStyle.Bold
+            );
             dataGridView1.ColumnHeadersHeight = 30;
 
             // 隔行变色
@@ -306,6 +320,17 @@ namespace EquipmentMonitorDay1
             // ======================
             // ======================
 
+            // ====== 生产者-消费者初始化 ======
+            _dataQueue = new ConcurrentQueue<DeviceData>();
+            _cts = new CancellationTokenSource();
+
+            // 消费定时器：UI 线程每 500ms 从队列取数据显示
+            Timer consumeTimer = new Timer();
+            consumeTimer.Interval = 500;
+            consumeTimer.Tick += ConsumeTimer_Tick;
+            consumeTimer.Start();
+            // ===============================
+
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
         }
@@ -319,7 +344,12 @@ namespace EquipmentMonitorDay1
             button2.Enabled = true;
             label1.Text = "PLC-1: 已连接";
             _lblPLC.Text = "PLC-1: 已连接";
-            AppendLog("开始数据采集...");
+
+            //启动生产者后台任务
+            _cts = new CancellationTokenSource();
+            _producerTask = ProduceDataAsync(_cts.Token);
+
+            AppendLog("开始数据采集(后台线程)...");
         }
 
         /// <summary>
@@ -331,6 +361,8 @@ namespace EquipmentMonitorDay1
             button2.Enabled = false;
             label1.Text = "PLC-1: 已停止";
             _lblPLC.Text = "PLC-1: 已停止";
+
+            _cts.Cancel();
 
             AppendLog("数据采集已停止");
         }
@@ -633,7 +665,6 @@ namespace EquipmentMonitorDay1
             // 后续可以接 SaveFileDialog + 写 CSV 文件
         }
 
-
         /// <summary>
         /// 🗑 删除设备：勾选的设备 → 确认 → 删除
         /// </summary>
@@ -754,5 +785,90 @@ namespace EquipmentMonitorDay1
             }
         }
 
+        /// <summary>
+        /// 生产者：后台线程循环采集数据 → 放入队列
+        /// </summary>
+        private async Task ProduceDataAsync(CancellationToken token)
+        {
+            // 在后台线程运行，不阻塞 UI
+            await Task.Run(() =>
+            {
+                Random random = new Random();
+                while (!token.IsCancellationRequested)
+                {
+                    // 模拟采集数据
+                    foreach (var device in _dataList)
+                    {
+                        //数值波动
+                        double delta = (random.NextDouble() - 0.5) * 10;
+                        double newValue = Math.Round(device.Value + delta, 1);
+                        if (newValue < 0)
+                        {
+                            newValue = 0;
+                        }
+
+                        // 随机状态变化（5% 概率）
+                        string newStatus = device.Status;
+                        if (random.Next(100) < 5)
+                        {
+                            string[] statuses = { "正常", "报警", "离线" };
+                            newStatus = statuses[random.Next(3)];
+                        }
+
+                        // 创建新数据对象 → 放入队列
+                        DeviceData newData = new DeviceData
+                        {
+                            DeviceName = device.DeviceName,
+                            Value = newValue,
+                            Unit = device.Unit,
+                            Status = newStatus,
+                            UpdateTime = DateTime.Now,
+                        };
+                        _dataQueue.Enqueue(newData);
+                    }
+                    // 每秒采集一次
+                    Thread.Sleep(1000);
+                }
+            });
+        }
+
+        /// <summary>
+        /// 消费者：UI 线程每 500ms 从队列取数据 → 更新 DataGridView
+        /// </summary>
+        private void ConsumeTimer_Tick(object sender, EventArgs e)
+        {
+            // 一次最多处理 10 条，避免 UI 卡太久
+            int processed = 0;
+
+            while (_dataQueue.TryDequeue(out DeviceData newData) && processed < 10)
+            {
+                foreach (var device in _dataList)
+                {
+                    if (device.DeviceName == newData.DeviceName)
+                    {
+                        device.Value = newData.Value;
+                        device.Unit = newData.Unit;
+                        device.Status = newData.Status;
+                        break;
+                    }
+                }
+                processed++;
+            }
+
+            if (processed > 0)
+            {
+                dataGridView1.Refresh();
+            }
+        }
+
+        /// <summary>
+        /// 窗体关闭时：停止后台线程
+        /// </summary>\
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _cts?.Cancel();
+            _producerTask?.Wait(1000); // 等待最多 1 秒，确保后台线程结束
+            base.OnFormClosing(e);
+        }
     }
 }
