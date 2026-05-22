@@ -50,6 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.cs" />
+    <Compile Include="DeviceCard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DeviceCard.Designer.cs">
+      <DependentUpon>DeviceCard.cs</DependentUpon>
+    </Compile>
     <Compile Include="DeviceData.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -59,6 +65,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="DeviceCard.resx">
+      <DependentUpon>DeviceCard.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

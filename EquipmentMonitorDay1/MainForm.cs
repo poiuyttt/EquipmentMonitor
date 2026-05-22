@@ -16,6 +16,10 @@ namespace EquipmentMonitorDay1
         // 数据绑定桥梁
         private BindingSource _bindingSource;
 
+        // 完整数据备份（过滤时保留原始数据用）
+        private List<DeviceData> _allData;
+        private bool _isFiltered = false;
+
         // 运行计时器
         private Timer _statusTimer;
         private DateTime _startTime;
@@ -90,12 +94,35 @@ namespace EquipmentMonitorDay1
             _bindingSource = new BindingSource();
             _bindingSource.DataSource = _dataList;
 
+            // 备份完整数据（筛选时需要恢复）
+            _allData = _dataList.ToList();
+
             // 第二步：DataGridView 绑定到 BindingSource（不再直接绑 _dataList）
             dataGridView1.DataSource = _bindingSource;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersVisible = false;
+            // 禁止用户新增/删除行
+            dataGridView1.AllowUserToAddRows = false;
+            dataGridView1.AllowUserToDeleteRows = false;
+
+            // DataGridViewCheckBoxColumn = 带勾选框的列
+            DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
+            checkColumn.HeaderText = "选择";
+            checkColumn.Name = "checkColumn";
+            checkColumn.Width = 50;
+            checkColumn.FalseValue = false;
+            checkColumn.TrueValue = true;
+
+            // Insert = 插到第 0 列（最左边），不然后面 Columns["DeviceName"] 这些的索引会乱
+            dataGridView1.Columns.Insert(0, checkColumn);
+
+            // 逐列锁定：只有复选框列可编辑，其余数据列全部只读
+            foreach (DataGridViewColumn col in dataGridView1.Columns)
+            {
+                if (col.Name != "checkColumn")
+                    col.ReadOnly = true;
+            }
 
             // 设置列标题
             dataGridView1.Columns["DeviceName"].HeaderText = "设备名称";
@@ -168,9 +195,8 @@ namespace EquipmentMonitorDay1
                 else
                     显示全部设备ToolStripMenuItem_Click(null, EventArgs.Empty);
             };
-
-
-            // btnExport 你先不用绑，后面再实现导出功能
+            btnExport.Click += (sender, args) =>
+                批量导出选中ToolStripMenuItem_Click(null, EventArgs.Empty);
 
             // Items.Add = 按顺序加到工具栏上
             toolStrip.Items.Add(btnStart);
@@ -204,6 +230,14 @@ namespace EquipmentMonitorDay1
             statusStrip.Items.Add(_lblTime);
 
             this.Controls.Add(statusStrip);
+
+            // 创建设备卡片
+            DeviceCard card = new DeviceCard();
+            card.DeviceName = "反应釜A-温度";
+            card.DisplayValue = "85.3 ℃";
+            card.Status = "正常";
+
+            flowLayoutDeviceCards.Controls.Add(card);
 
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
@@ -455,13 +489,25 @@ namespace EquipmentMonitorDay1
 
         /// <summary>
         /// 切换筛选：只显示状态为"报警"的设备
-        /// 可以绑定到工具栏按钮或 CheckBox
         /// </summary>
         private void 显示报警设备ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // BindingSource.Filter = 筛选条件表达式
-            // 语法：列名 = '值'    注意字符串值要用单引号括起来
-            _bindingSource.Filter = "Status = '报警'";
+            if (_isFiltered)
+                return; // 已经筛选过了，不用重复
+
+            _isFiltered = true;
+
+            // 同步更新 _allData 备份（避免数据变更后丢失）
+            _allData = _dataList.ToList();
+
+            _bindingSource.SuspendBinding();
+            _dataList.Clear();
+            foreach (var item in _allData)
+            {
+                if (item.Status == "报警")
+                    _dataList.Add(item);
+            }
+            _bindingSource.ResumeBinding();
 
             AppendLog("已筛选：仅显示报警设备");
         }
@@ -471,10 +517,53 @@ namespace EquipmentMonitorDay1
         /// </summary>
         private void 显示全部设备ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // RemoveFilter() = 去掉筛选条件，恢复全部数据
-            _bindingSource.RemoveFilter();
+            if (!_isFiltered)
+                return;
+
+            _isFiltered = false;
+
+            _bindingSource.SuspendBinding();
+            _dataList.Clear();
+            foreach (var item in _allData)
+                _dataList.Add(item);
+            _bindingSource.ResumeBinding();
 
             AppendLog("已清除筛选：显示全部设备");
+        }
+
+        /// <summary>
+        /// 批量导出选中的设备数据到 CSV 文件
+        /// </summary>
+        private void 批量导出选中ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 遍历 DataGridView 的所有行，找出勾选了的
+            var selectedDevices = new List<DeviceData>();
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                // Cells["checkColumn"].Value = 这一行的勾选框的值
+                // 如果没勾选，Value 可能是 null 或 false
+                if (row.Cells["checkColumn"].Value is bool isChecked && isChecked)
+                {
+                    // row.DataBoundItem = 这一行绑定的数据对象
+                    if (row.DataBoundItem is DeviceData device)
+                    {
+                        selectedDevices.Add(device);
+                    }
+                }
+            }
+            if (selectedDevices.Count == 0)
+            {
+                MessageBox.Show(
+                    "请先勾选要导出的设备",
+                    "提示",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+                return;
+            }
+
+            AppendLog($"已选中 {selectedDevices.Count} 台设备，准备导出");
+            // 后续可以接 SaveFileDialog + 写 CSV 文件
         }
     }
 }

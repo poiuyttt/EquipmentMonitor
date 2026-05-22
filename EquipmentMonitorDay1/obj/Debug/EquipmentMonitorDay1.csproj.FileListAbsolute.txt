@@ -1,11 +1,12 @@
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe.config
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.pdb
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.AssemblyReference.cache
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.DeviceCard.resources
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.MainForm.resources
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.Properties.Resources.resources
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.GenerateResource.cache
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.CoreCompileInputs.cache
-D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe.config
-D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.exe
-D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\EquipmentMonitorDay1.pdb
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.exe
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.pdb
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\Newtonsoft.Json.dll
