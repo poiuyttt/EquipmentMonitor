@@ -44,7 +44,6 @@ namespace EquipmentMonitorDay1
         private CancellationTokenSource _cts; // 取消令牌
         private Task _producerTask; // 后台采集任务
 
-
         // ===========================
 
         public MainForm()
@@ -59,8 +58,9 @@ namespace EquipmentMonitorDay1
         {
             base.OnLoad(e);
 
-            comboBox1.SelectedIndex = 0; // 默认 COM1
-            comboBox2.SelectedIndex = 0; // 默认 9600
+            // ====== 加载外部配置 ======
+            LoadConfigFromFile();
+            // ==========================
 
             // ---------- 窗口标题 ----------
             this.Text = "工业设备监控系统 v1.0";
@@ -123,7 +123,7 @@ namespace EquipmentMonitorDay1
             DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
             checkColumn.HeaderText = "选择";
             checkColumn.Name = "checkColumn";
-            checkColumn.DataPropertyName = "IsSelected";  // 绑定到数据模型的 IsSelected 属性
+            checkColumn.DataPropertyName = "IsSelected"; // 绑定到数据模型的 IsSelected 属性
             checkColumn.Width = 50;
             checkColumn.FalseValue = false;
             checkColumn.TrueValue = true;
@@ -879,6 +879,99 @@ namespace EquipmentMonitorDay1
             _cts?.Cancel();
             _producerTask?.Wait(1000); // 等待最多 1 秒，确保后台线程结束
             base.OnFormClosing(e);
+        }
+
+        /// <summary>
+        /// 从 exe 同级的 appsettings.json 读取配置
+        /// 如果文件不存在，用默认值
+        /// </summary>
+        private void LoadConfigFromFile()
+        {
+            string configPath = Path.Combine(Application.StartupPath, "appsettings.json");
+
+            if (!File.Exists(configPath))
+            {
+                AppendLog("配置文件不存在，使用默认值");
+                return;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(configPath);
+                var config = new JavaScriptSerializer().Deserialize<AppConfig>(json);
+
+                comboBox1.Text = config.PortName;
+                comboBox2.Text = config.BaudRate.ToString();
+                numericUpDown1.Value = config.Interval;
+                checkBox1.Checked = config.EnableAlarm;
+                checkBox2.Checked = config.EnableAutoSave;
+
+                radioButton1.Checked = config.WorkMode != "自动";
+                radioButton2.Checked = config.WorkMode == "自动";
+
+                AppendLog($"已加载配置：{configPath}");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"加载配置失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 设置开机自启
+        /// </summary>
+        private static void SetAutoStart()
+        {
+            try
+            {
+                string appName = "EquipmentMonitorDay1";
+                string appPath = Application.ExecutablePath;
+
+                using (
+                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                        true
+                    )
+                )
+                {
+                    if (key != null)
+                    {
+                        key.SetValue(appName, appPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"设置开机启动失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 取消开机自启
+        /// </summary>
+        private static void RemoveAutoStart()
+        {
+            try
+            {
+                string appName = "EquipmentMonitorDay1";
+
+                using (
+                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                        @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+                        true
+                    )
+                )
+                {
+                    if (key != null && key.GetValue(appName) != null)
+                    {
+                        key.DeleteValue(appName);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"取消开机启动失败：{ex.Message}");
+            }
         }
     }
 }

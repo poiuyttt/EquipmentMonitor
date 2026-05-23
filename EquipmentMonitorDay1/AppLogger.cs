@@ -56,7 +56,7 @@ namespace EquipmentMonitorDay1
                 string filePath = Path.Combine(_logDir, fileName);
 
                 // 写日志内容：时间 + 级别 + 消息
-                string line = $"{DateTime.Now:HH-mm-ss}[{level}]{message}";
+                string line = $"{DateTime.Now:HH:mm:ss}[{level}]{message}";
 
                 // 追加写入日志文件
                 File.AppendAllText(filePath, line + Environment.NewLine);

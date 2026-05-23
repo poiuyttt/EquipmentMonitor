@@ -10,3 +10,4 @@ D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMo
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.csproj.CoreCompileInputs.cache
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.exe
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.pdb
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\appsettings.json
