@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,6 +45,10 @@ namespace EquipmentMonitorDay1
         private CancellationTokenSource _cts; // 取消令牌
         private Task _producerTask; // 后台采集任务
 
+        // ====== 串口通信 ======
+        private SerialPort _serialPort;
+
+        // ====================
         // ===========================
 
         public MainForm()
@@ -344,15 +349,39 @@ namespace EquipmentMonitorDay1
         {
             button1.Enabled = false;
             button2.Enabled = true;
-            label1.Text = "PLC-1: 已连接";
-            _lblPLC.Text = "PLC-1: 已连接";
 
-            //启动生产者后台任务
-            _cts = new CancellationTokenSource();
-            _producerTask = ProduceDataAsync(_cts.Token);
+            try
+            {
+                // 创建串口对象
+                _serialPort = new SerialPort();
 
-            AppendLog("开始数据采集(后台线程)...");
-            AppLogger.Info("开始数据采集(后台线程)...");
+                // ====== 配置串口参数（从界面读取） ======
+                _serialPort.PortName = comboBox1.Text; // 串口号
+                _serialPort.BaudRate = int.Parse(comboBox2.Text); // 波特率
+                _serialPort.DataBits = 8; // 数据位
+                _serialPort.StopBits = StopBits.One; // 停止位
+                _serialPort.Parity = Parity.None; // 校验位
+                // ===================================
+
+                // 串口收到数据时触发
+                _serialPort.DataReceived += SerialPort_DataReceived;
+
+                _serialPort.Open();
+
+                label1.Text = "PLC-1: 已连接";
+                _lblPLC.Text = "PLC-1: 已连接";
+
+                _cts = new CancellationTokenSource();
+                _producerTask = ProduceDataAsync(_cts.Token);
+
+                AppendLog($"已连接串口 {comboBox1.Text}，波特率 {comboBox2.Text}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"打开串口失败：{ex.Message}");
+                button1.Enabled = true;
+                button2.Enabled = false;
+            }
         }
 
         /// <summary>
@@ -362,13 +391,21 @@ namespace EquipmentMonitorDay1
         {
             button1.Enabled = true;
             button2.Enabled = false;
+
+            //关闭串口
+            if (_serialPort != null && _serialPort.IsOpen)
+            {
+                _serialPort.Close();
+                _serialPort.Dispose();
+                _serialPort = null;
+            }
+
+            _cts?.Cancel();
+
             label1.Text = "PLC-1: 已停止";
             _lblPLC.Text = "PLC-1: 已停止";
 
-            _cts.Cancel();
-
-            AppendLog("数据采集已停止");
-            AppLogger.Info("数据采集已停止");
+            AppendLog("串口已关闭");
         }
 
         /// <summary>
@@ -971,6 +1008,55 @@ namespace EquipmentMonitorDay1
             catch (Exception ex)
             {
                 MessageBox.Show($"取消开机启动失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 串口收到数据时触发（在后台线程！不能直接更新 UI）
+        /// </summary>
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                SerialPort port = (SerialPort)sender;
+                int bytesToRead = port.BytesToRead;
+                byte[] buffer = new byte[bytesToRead];
+                port.Read(buffer, 0, bytesToRead);
+
+                // 收到的数据放到队列，让消费者处理
+                // 这里在后台线程，不能直接改 UI
+                string hexString = BitConverter.ToString(buffer);
+
+                // 通过 Invoke 写日志
+                this.BeginInvoke(
+                    new Action(() => AppendLog($"收到{bytesToRead} 字节：{hexString}"))
+                );
+            }
+            catch (Exception ex)
+            {
+                this.BeginInvoke(new Action(() => AppendLog($"处理串口数据失败：{ex.Message}")));
+            }
+        }
+
+        /// <summary>
+        /// 发送数据到串口
+        /// 可以在工具栏加个"发送"按钮调用
+        /// </summary>
+        private void SendData(byte[] data)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+            {
+                AppendLog("串口未打开，无法发送");
+                return;
+            }
+            try
+            {
+                _serialPort.Write(data, 0, data.Length);
+                AppendLog($"发送 {data.Length} 字节数据");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"发送失败：{ex.Message}");
             }
         }
     }
