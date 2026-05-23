@@ -1,0 +1,35 @@
+[2026-05-23 10:54:17] UI线程异常: System.FormatException: 输入字符串的格式不正确。
+   在 System.Number.StringToNumber(String str, NumberStyles options, NumberBuffer& number, NumberFormatInfo info, Boolean parseDecimal)
+   在 System.Number.ParseInt32(String s, NumberStyles style, NumberFormatInfo info)
+   在 System.Int32.Parse(String s)
+   在 EquipmentMonitorDay1.MainForm.BtnStart_Click(Object sender, EventArgs e) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 347
+   在 System.Windows.Forms.Control.OnClick(EventArgs e)
+   在 System.Windows.Forms.Button.OnClick(EventArgs e)
+   在 System.Windows.Forms.Button.OnMouseUp(MouseEventArgs mevent)
+   在 System.Windows.Forms.Control.WmMouseUp(Message& m, MouseButtons button, Int32 clicks)
+   在 System.Windows.Forms.Control.WndProc(Message& m)
+   在 System.Windows.Forms.ButtonBase.WndProc(Message& m)
+   在 System.Windows.Forms.Button.WndProc(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
+   在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+[2026-05-23 17:37:04] UI线程异常: System.ArgumentOutOfRangeException: “210.5”的值对于“Value”无效。“Value”应介于 'Minimum' 和 'Maximum' 之间。
+参数名: Value
+   在 System.Windows.Forms.NumericUpDown.set_Value(Decimal value)
+   在 EquipmentMonitorDay1.DeviceEditForm.set_DeviceValue(Double value) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\DeviceEditForm.cs:行号 20
+   在 EquipmentMonitorDay1.MainForm.BtnEdit_Click(Object value, EventArgs empty) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 745
+   在 EquipmentMonitorDay1.MainForm.<>c__DisplayClass14_0.<OnLoad>b__6(Object sender, EventArgs args) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 221
+   在 System.Windows.Forms.ToolStripItem.RaiseEvent(Object key, EventArgs e)
+   在 System.Windows.Forms.ToolStripButton.OnClick(EventArgs e)
+   在 System.Windows.Forms.ToolStripItem.HandleClick(EventArgs e)
+   在 System.Windows.Forms.ToolStripItem.HandleMouseUp(MouseEventArgs e)
+   在 System.Windows.Forms.ToolStripItem.FireEventInteractive(EventArgs e, ToolStripItemEventType met)
+   在 System.Windows.Forms.ToolStripItem.FireEvent(EventArgs e, ToolStripItemEventType met)
+   在 System.Windows.Forms.ToolStrip.OnMouseUp(MouseEventArgs mea)
+   在 System.Windows.Forms.Control.WmMouseUp(Message& m, MouseButtons button, Int32 clicks)
+   在 System.Windows.Forms.Control.WndProc(Message& m)
+   在 System.Windows.Forms.ScrollableControl.WndProc(Message& m)
+   在 System.Windows.Forms.ToolStrip.WndProc(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
+   在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)

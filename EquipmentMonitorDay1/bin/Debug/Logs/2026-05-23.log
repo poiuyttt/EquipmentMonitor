@@ -1,0 +1,35 @@
+17-25-46[INFO]系统启动完成
+17-25-49[INFO]开始数据采集(后台线程)...
+17-25-52[INFO]数据采集已停止
+17-25-54[INFO]开始数据采集(后台线程)...
+17-25-57[INFO]已筛选：仅显示报警设备
+17-25-59[INFO]已清除筛选：显示全部设备
+17-26-11[INFO]已添加设备：股份分割
+17-26-36[INFO]已删除1 台设备
+17-26-41[INFO]已删除1 台设备
+17-26-46[INFO]已删除1 台设备
+17-26-52[INFO]已删除1 台设备
+17-36-38[INFO]系统启动完成
+17-36-55[INFO]已删除2 台设备
+17-37-07[ERROR]UI 线程未处理异常
+异常：“210.5”的值对于“Value”无效。“Value”应介于 'Minimum' 和 'Maximum' 之间。
+参数名: Value
+ 堆栈：   在 System.Windows.Forms.NumericUpDown.set_Value(Decimal value)
+   在 EquipmentMonitorDay1.DeviceEditForm.set_DeviceValue(Double value) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\DeviceEditForm.cs:行号 20
+   在 EquipmentMonitorDay1.MainForm.BtnEdit_Click(Object value, EventArgs empty) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 745
+   在 EquipmentMonitorDay1.MainForm.<>c__DisplayClass14_0.<OnLoad>b__6(Object sender, EventArgs args) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 221
+   在 System.Windows.Forms.ToolStripItem.RaiseEvent(Object key, EventArgs e)
+   在 System.Windows.Forms.ToolStripButton.OnClick(EventArgs e)
+   在 System.Windows.Forms.ToolStripItem.HandleClick(EventArgs e)
+   在 System.Windows.Forms.ToolStripItem.HandleMouseUp(MouseEventArgs e)
+   在 System.Windows.Forms.ToolStripItem.FireEventInteractive(EventArgs e, ToolStripItemEventType met)
+   在 System.Windows.Forms.ToolStripItem.FireEvent(EventArgs e, ToolStripItemEventType met)
+   在 System.Windows.Forms.ToolStrip.OnMouseUp(MouseEventArgs mea)
+   在 System.Windows.Forms.Control.WmMouseUp(Message& m, MouseButtons button, Int32 clicks)
+   在 System.Windows.Forms.Control.WndProc(Message& m)
+   在 System.Windows.Forms.ScrollableControl.WndProc(Message& m)
+   在 System.Windows.Forms.ToolStrip.WndProc(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.OnMessage(Message& m)
+   在 System.Windows.Forms.Control.ControlNativeWindow.WndProc(Message& m)
+   在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+17-37-09[INFO]已删除2 台设备

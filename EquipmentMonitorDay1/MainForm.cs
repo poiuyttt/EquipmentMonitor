@@ -123,6 +123,7 @@ namespace EquipmentMonitorDay1
             DataGridViewCheckBoxColumn checkColumn = new DataGridViewCheckBoxColumn();
             checkColumn.HeaderText = "选择";
             checkColumn.Name = "checkColumn";
+            checkColumn.DataPropertyName = "IsSelected";  // 绑定到数据模型的 IsSelected 属性
             checkColumn.Width = 50;
             checkColumn.FalseValue = false;
             checkColumn.TrueValue = true;
@@ -333,6 +334,7 @@ namespace EquipmentMonitorDay1
 
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
+            AppLogger.Info("系统启动完成");
         }
 
         /// <summary>
@@ -350,6 +352,7 @@ namespace EquipmentMonitorDay1
             _producerTask = ProduceDataAsync(_cts.Token);
 
             AppendLog("开始数据采集(后台线程)...");
+            AppLogger.Info("开始数据采集(后台线程)...");
         }
 
         /// <summary>
@@ -365,6 +368,7 @@ namespace EquipmentMonitorDay1
             _cts.Cancel();
 
             AppendLog("数据采集已停止");
+            AppLogger.Info("数据采集已停止");
         }
 
         /// <summary>
@@ -395,9 +399,13 @@ namespace EquipmentMonitorDay1
 
             MessageBox.Show(message, "已保存", MessageBoxButtons.OK, MessageBoxIcon.Information);
             AppendLog($"数据已保存:{port},{baud},{interval}ms");
+            AppLogger.Info($"数据已保存:{port},{baud},{interval}ms");
             AppendLog($"声音报警：{(checkBox1.Checked ? "开启" : "关闭")}：");
+            AppLogger.Info($"声音报警：{(checkBox1.Checked ? "开启" : "关闭")}：");
             AppendLog($"自动保存：{(checkBox2.Checked ? "开启" : "关闭")}：");
+            AppLogger.Info($"自动保存：{(checkBox2.Checked ? "开启" : "关闭")}：");
             AppendLog($"工作模式：{mode}");
+            AppLogger.Info($"工作模式：{mode}");
         }
 
         /// <summary>
@@ -490,10 +498,12 @@ namespace EquipmentMonitorDay1
                 dataGridView1.ResumeLayout(); // 恢复布局
 
                 AppendLog($"已排序：{colName}（{(_sortAscending ? "升序" : "降序")}）");
+                AppLogger.Info($"已排序：{colName}（{(_sortAscending ? "升序" : "降序")}）");
             }
             catch (Exception ex)
             {
                 AppendLog($"排序失败：{ex.Message}");
+                AppLogger.Error($"排序失败：{ex.Message}", ex);
             }
         }
 
@@ -532,6 +542,7 @@ namespace EquipmentMonitorDay1
                         checkBox2.Checked = config.EnableAutoSave; // 自动保存
 
                         AppendLog($"配置已加载：{dlg.FileName}");
+                        AppLogger.Info($"配置已加载：{dlg.FileName}");
                     }
                     catch (Exception ex)
                     {
@@ -560,6 +571,7 @@ namespace EquipmentMonitorDay1
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     AppendLog($"数据已导出到：{dlg.FileName}");
+                    AppLogger.Info($"数据已导出到：{dlg.FileName}");
                 }
             }
         }
@@ -582,6 +594,7 @@ namespace EquipmentMonitorDay1
                     string selectedPath = dlg.SelectedPath;
 
                     AppendLog($"保存设置目录已设置：{selectedPath}");
+                    AppLogger.Info($"保存设置目录已设置：{selectedPath}");
                 }
             }
         }
@@ -609,6 +622,7 @@ namespace EquipmentMonitorDay1
             _bindingSource.ResumeBinding();
 
             AppendLog("已筛选：仅显示报警设备");
+            AppLogger.Info("已筛选：仅显示报警设备");
         }
 
         /// <summary>
@@ -628,6 +642,7 @@ namespace EquipmentMonitorDay1
             _bindingSource.ResumeBinding();
 
             AppendLog("已清除筛选：显示全部设备");
+            AppLogger.Info("已清除筛选：显示全部设备");
         }
 
         /// <summary>
@@ -635,20 +650,13 @@ namespace EquipmentMonitorDay1
         /// </summary>
         private void 批量导出选中ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // 遍历 DataGridView 的所有行，找出勾选了的
+            dataGridView1.EndEdit();
+
             var selectedDevices = new List<DeviceData>();
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            foreach (DeviceData device in _dataList)
             {
-                // Cells["checkColumn"].Value = 这一行的勾选框的值
-                // 如果没勾选，Value 可能是 null 或 false
-                if (row.Cells["checkColumn"].Value is bool isChecked && isChecked)
-                {
-                    // row.DataBoundItem = 这一行绑定的数据对象
-                    if (row.DataBoundItem is DeviceData device)
-                    {
-                        selectedDevices.Add(device);
-                    }
-                }
+                if (device.IsSelected)
+                    selectedDevices.Add(device);
             }
             if (selectedDevices.Count == 0)
             {
@@ -662,6 +670,7 @@ namespace EquipmentMonitorDay1
             }
 
             AppendLog($"已选中 {selectedDevices.Count} 台设备，准备导出");
+            AppLogger.Info($"已选中 {selectedDevices.Count} 台设备，准备导出");
             // 后续可以接 SaveFileDialog + 写 CSV 文件
         }
 
@@ -670,16 +679,14 @@ namespace EquipmentMonitorDay1
         /// </summary>
         private void BtnDelete_Click(object value, EventArgs empty)
         {
+            // 提交当前正在编辑的勾选框值
+            dataGridView1.EndEdit();
+
             List<DeviceData> toDelete = new List<DeviceData>();
-            foreach (DataGridViewRow row in dataGridView1.Rows)
+            foreach (DeviceData device in _dataList)
             {
-                if (row.Cells["checkColumn"].Value is bool isCheck && isCheck)
-                {
-                    if (row.DataBoundItem is DeviceData device)
-                    {
-                        toDelete.Add(device);
-                    }
-                }
+                if (device.IsSelected)
+                    toDelete.Add(device);
             }
             if (toDelete.Count == 0)
             {
@@ -707,6 +714,7 @@ namespace EquipmentMonitorDay1
                 }
 
                 AppendLog($"已删除{toDelete.Count} 台设备");
+                AppLogger.Info($"已删除{toDelete.Count} 台设备");
             }
         }
 
@@ -751,6 +759,7 @@ namespace EquipmentMonitorDay1
                         _bindingSource.ResetBindings(true);
 
                         AppendLog($"已编辑设备：{device.DeviceName}");
+                        AppLogger.Info($"已编辑设备：{device.DeviceName}");
                     }
                 }
             }
@@ -781,6 +790,7 @@ namespace EquipmentMonitorDay1
                     _dataList.Add(newDevice);
 
                     AppendLog($"已添加设备：{newDevice.DeviceName}");
+                    AppLogger.Info($"已添加设备：{newDevice.DeviceName}");
                 }
             }
         }

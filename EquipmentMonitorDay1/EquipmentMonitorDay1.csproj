@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfig.cs" />
+    <Compile Include="AppLogger.cs" />
     <Compile Include="DeviceCard.cs">
       <SubType>UserControl</SubType>
     </Compile>

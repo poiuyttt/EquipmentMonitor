@@ -7,6 +7,7 @@ namespace EquipmentMonitorDay1
     /// </summary>
     public class DeviceData
     {
+        public bool IsSelected { get; set; }
         public string DeviceName { get; set; }
         public double Value { get; set; }
         public string Unit { get; set; }
