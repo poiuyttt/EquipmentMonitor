@@ -345,6 +345,10 @@ namespace EquipmentMonitorDay1
             consumeTimer.Start();
             // ===============================
 
+            byte[] testMessage = { 0x00, 0x85, 0x01, 0x0F, 0x01, 0x84, 0x0A };
+            ParseIndustryMessage(testMessage);
+
+
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
@@ -375,6 +379,7 @@ namespace EquipmentMonitorDay1
                 _serialPort.DataReceived += SerialPort_DataReceived;
 
                 _serialPort.Open();
+                //TestDataParsing();
 
                 label1.Text = "PLC-1: 已连接";
                 _lblPLC.Text = "PLC-1: 已连接";
@@ -883,6 +888,56 @@ namespace EquipmentMonitorDay1
                     }
                     // 每秒采集一次
                     Thread.Sleep(1000);
+
+                    // ====== 串口断开重连检查 ======
+                    // 如果串口被意外断开（线松了、PLC重启了），尝试重连
+                    if (_serialPort != null && !_serialPort.IsOpen)
+                    {
+                        this.BeginInvoke(
+                            new Action(() =>
+                            {
+                                label1.Text = "PLC-1：离线";
+                                _lblPLC.Text = "PLC-1：离线";
+                                AppendLog("串口断开，尝试重连。");
+                            })
+                        );
+
+                        try
+                        {
+                            //关闭旧的资源串口
+                            _serialPort.Dispose();
+                            _serialPort = null;
+
+                            //重新创建并打开
+                            _serialPort = new SerialPort(
+                                comboBox1.Text,
+                                int.Parse(comboBox2.Text),
+                                Parity.None,
+                                8,
+                                StopBits.One
+                            );
+                            _serialPort.Open();
+
+                            this.BeginInvoke(
+                                new Action(() =>
+                                {
+                                    label1.Text = "PLC-1：已连接";
+                                    _lblPLC.Text = "PLC-1：已连接";
+                                    AppendLog("串口重连成功。");
+                                })
+                            );
+                        }
+                        catch
+                        {
+                            this.BeginInvoke(
+                                new Action(() =>
+                                {
+                                    AppendLog("重连失败，5秒后重试");
+                                })
+                            );
+                        }
+                    }
+                    // ================================
                 }
             });
         }
@@ -1068,6 +1123,122 @@ namespace EquipmentMonitorDay1
             {
                 AppendLog($"发送失败：{ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 演示：字节数组怎么转成数值
+        /// </summary>
+        private void TestDataParsing()
+        {
+            byte[] rawData = { 0x00, 0x85, 0x01, 0x0F, 0x33, 0x33, 0xAB, 0x42 };
+
+            // 第 1~2 字节：00 85 → 温度值（大端）
+            /*rawData[0]	0x00	高字节（高位）
+              rawData[1]	0x85 = 133	低字节（低位）
+              rawData[0] << 8	0x00 << 8 = 0x0000	将高字节左移 8 位，放到高 8 位位置*/
+            int tempRaw = (rawData[0] << 8) + rawData[1]; //	0x0000 + 0x85 = 0x0085 = 133
+            double temperature = tempRaw / 10;
+
+            // 第 3~4 字节：01 0F → 压力值（大端）
+            int pressRaw = (rawData[2] << 8) + rawData[3]; // 0x010F = 271
+            double pressure = pressRaw / 100.0; // 2.71 MPa
+
+            AppendLog($"========== 数据解析演示 ==========");
+            AppendLog($"原始字节：{BitConverter.ToString(rawData)}");
+            AppendLog($"温度：{temperature}℃  （00 85 → 133 → ÷10 → 13.3℃）");
+            AppendLog($"压力：{pressure}MPa  （01 0F → 271 → ÷100 → 2.71MPa）");
+
+            // 假设收到 4 个字节：01 02 03 04
+
+            // 大端（Big-Endian）：高位在前（PLC 默认方式）
+            //  值 = 0x01020304 = 16909060
+
+            // 小端（Little-Endian）：低位在前（Windows 默认方式）
+            //  值 = 0x04030201 = 67305985
+        }
+
+        /// <summary>
+        /// CRC16-Modbus 校验（面试手写频率最高）
+        /// </summary>
+        public static byte[] CalculateCRC16(byte[] data)
+        {
+            ushort crc = 0xFFFF;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                crc ^= data[i];
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((crc & 0x0001) != 0)
+                    {
+                        crc = (ushort)((crc >> 1) ^ 0xA001);
+                    }
+                    else
+                    {
+                        crc >>= 1;
+                    }
+                }
+            }
+            // CRC 低字节在前，高字节在后
+            return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
+        }
+
+        /// <summary>
+        /// 实战：解析一段模拟的工业设备报文
+        /// PLC 传来 9 个字节，包含温度、压力、状态
+        /// </summary>
+        private void ParseIndustryMessage(byte[] message)
+        {
+            // 报文格式（假设的工业协议）：
+            // ┌────   ┬───   ─┬────   ┬───  ─┬───  ─┬────   ┬────   ┬────┬────┐
+            // │ 温度高 │ 温度低 │ 压力高 │ 压力低 │ 状态  │ CRC低 │ CRC高 │
+            // │  0x00 │  0x85 │  0x01 │  0x0F│  0x01│  0x__ │  0x__ │
+            // └───   ─┴──   ──┴───   ─┴───  ─┴───  ─┴────   ┴───   ─┴────┴────┘
+            if (message.Length < 7)
+                return;
+
+            // ====== 1. 解析温度（大端，精度 0.1） ======
+            // 第 0~1 字节：00 85 → 0x0085 = 133 → 13.3℃
+            int tempRaw = (message[0] << 8) + message[1];
+            double temperature = tempRaw / 10.0;
+
+            // ====== 2. 解析压力（大端，精度 0.01） ======
+            // 第 2~3 字节：01 0F → 0x010F = 271 → 2.71 MPa
+            int pressRaw = (message[2] << 8) + message[3];
+            double pressure = pressRaw / 100.0;
+
+            // ====== 3. 解析状态 ======
+            // 第 4 字节：0x01 = 正常，0x02 = 报警，0x03 = 离线
+            string status;
+            switch (message[4])
+            {
+                case 0x01:
+                    status = "正常";
+                    break;
+                case 0x02:
+                    status = "报警";
+                    break;
+                case 0x03:
+                    status = "离线";
+                    break;
+                default:
+                    status = "未知";
+                    break;
+            }
+
+            // 输出到日志
+            AppendLog("========== 工业报文解析 ==========");
+            AppendLog($"原始报文：{BitConverter.ToString(message)}");
+            AppendLog($"温度：{temperature}℃");
+            AppendLog($"压力：{pressure}MPa");
+            AppendLog($"状态：{status}");
+            AppendLog($"=================================");
+
+
+
+
+
+
         }
     }
 }
