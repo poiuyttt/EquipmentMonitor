@@ -48,7 +48,9 @@ namespace EquipmentMonitorDay1
         // ====== 串口通信 ======
         private SerialPort _serialPort;
 
-        // ====================
+        // ====== 自动发送 ======
+        private Timer _autoSendTimer;
+
         // ===========================
 
         public MainForm()
@@ -212,6 +214,11 @@ namespace EquipmentMonitorDay1
             ToolStripSeparator separator4 = new ToolStripSeparator();
             ToolStripButton btnSend = new ToolStripButton("📤 发送");
 
+            ToolStripSeparator separator5 = new ToolStripSeparator();
+            ToolStripButton btnAutoSend = new ToolStripButton("🔄 自动发送");
+            btnAutoSend.CheckOnClick = true;
+
+
             // 事件绑定：工具栏按钮 → 复用你已有的方法
             btnStart.Click += (sender, args) => BtnStart_Click(null, EventArgs.Empty);
             btnStop.Click += (sender, args) => BtnStop_Click(null, EventArgs.Empty);
@@ -229,6 +236,17 @@ namespace EquipmentMonitorDay1
             btnEdit.Click += (sender, args) => BtnEdit_Click(null, EventArgs.Empty);
             btnDelete.Click += (sender, args) => BtnDelete_Click(null, EventArgs.Empty);
             btnSend.Click += (sender, args) => BtnSend_Click(null, EventArgs.Empty);
+            btnAutoSend.Click += (sender, args) =>
+            {
+                if (btnAutoSend.Checked)
+                {
+                    _autoSendTimer.Start();
+                }
+                else
+                {
+                    _autoSendTimer.Stop();
+                }
+            };
 
             // Items.Add = 按顺序加到工具栏上
             toolStrip.Items.Add(btnStart);
@@ -252,6 +270,10 @@ namespace EquipmentMonitorDay1
             toolStrip.Items.Add(separator3);
 
             toolStrip.Items.Add(btnSend);
+
+            toolStrip.Items.Add(separator5);
+
+            toolStrip.Items.Add(btnAutoSend);
 
             this.Controls.Add(toolStrip);
 
@@ -345,14 +367,19 @@ namespace EquipmentMonitorDay1
             consumeTimer.Start();
             // ===============================
 
-            byte[] testMessage = { 0x00, 0x85, 0x01, 0x0F, 0x01, 0x84, 0x0A };
-            ParseIndustryMessage(testMessage);
+            //byte[] testMessage = { 0x00, 0x85, 0x01, 0x0F, 0x01, 0x84, 0x0A };
+            //ParseIndustryMessage(testMessage);
 
+            // ====== 自动发送定时器初始化 ======
+            _autoSendTimer = new Timer();
+            _autoSendTimer.Interval = 3000;
+            _autoSendTimer.Tick += AutoSendTimer_Tick;
 
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
         }
+
 
         /// <summary>
         /// 开始采集
@@ -1233,12 +1260,30 @@ namespace EquipmentMonitorDay1
             AppendLog($"压力：{pressure}MPa");
             AppendLog($"状态：{status}");
             AppendLog($"=================================");
+        }
 
+        /// <summary>
+        /// 自动发送定时器：每 3 秒发一段测试数据
+        /// </summary>
+        private void AutoSendTimer_Tick(object sender, EventArgs e)
+        {
+            if (_serialPort == null || !_serialPort.IsOpen)
+            {
+                AppendLog("串口未打开，无法自动发送");
+                _autoSendTimer.Stop();
+            }
 
-
-
-
-
+            try
+            {
+                // 发送 Modbus 读寄存器测试报文
+                byte[] data = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0x84, 0x0A };
+                _serialPort.Write(data, 0, data.Length);
+                AppendLog($"自动发送：{BitConverter.ToString(data)}");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"自动发送失败：{ex.Message}");
+            }
         }
     }
 }
