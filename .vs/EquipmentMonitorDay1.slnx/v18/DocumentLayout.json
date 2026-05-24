@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|d:\\winforms\\demo\\equipmentmonitorday1\\equipmentmonitorday1\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|solutionrelative:equipmentmonitorday1\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|d:\\winforms\\demo\\equipmentmonitorday1\\equipmentmonitorday1\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|solutionrelative:equipmentmonitorday1\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|d:\\winforms\\demo\\equipmentmonitorday1\\equipmentmonitorday1\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{C77EC2E9-3B2D-4DF6-9FEE-7CBB64C41649}|EquipmentMonitorDay1\\EquipmentMonitorDay1.csproj|solutionrelative:equipmentmonitorday1\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,15 +35,40 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "MainForm.Designer.cs",
+              "DocumentMoniker": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.Designer.cs",
+              "RelativeDocumentMoniker": "EquipmentMonitorDay1\\MainForm.Designer.cs",
+              "ToolTip": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.Designer.cs",
+              "RelativeToolTip": "EquipmentMonitorDay1\\MainForm.Designer.cs",
+              "ViewState": "AgIAAHABAAAAAAAAAAAgwIMBAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-24T02:05:33.482Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "MainForm.cs",
               "DocumentMoniker": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.cs",
               "RelativeDocumentMoniker": "EquipmentMonitorDay1\\MainForm.cs",
               "ToolTip": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.cs",
               "RelativeToolTip": "EquipmentMonitorDay1\\MainForm.cs",
-              "ViewState": "AgIAAPgDAAAAAAAAAAAgwA8EAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAGwBAAAAAAAAAAAgwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-23T15:23:25.067Z",
+              "WhenOpened": "2026-05-24T02:05:19.785Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs [\u8BBE\u8BA1]",
+              "DocumentMoniker": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.cs",
+              "RelativeDocumentMoniker": "EquipmentMonitorDay1\\MainForm.cs",
+              "ToolTip": "D:\\WinForms\\Demo\\EquipmentMonitorDay1\\EquipmentMonitorDay1\\MainForm.cs [\u8BBE\u8BA1]",
+              "RelativeToolTip": "EquipmentMonitorDay1\\MainForm.cs [\u8BBE\u8BA1]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-24T02:05:18.283Z",
+              "EditorCaption": " [\u8BBE\u8BA1]"
             }
           ]
         },

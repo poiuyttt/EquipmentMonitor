@@ -209,6 +209,9 @@ namespace EquipmentMonitorDay1
             ToolStripButton btnEdit = new ToolStripButton("✏ 编辑");
             ToolStripButton btnDelete = new ToolStripButton("🗑 删除");
 
+            ToolStripSeparator separator4 = new ToolStripSeparator();
+            ToolStripButton btnSend = new ToolStripButton("📤 发送");
+
             // 事件绑定：工具栏按钮 → 复用你已有的方法
             btnStart.Click += (sender, args) => BtnStart_Click(null, EventArgs.Empty);
             btnStop.Click += (sender, args) => BtnStop_Click(null, EventArgs.Empty);
@@ -225,6 +228,7 @@ namespace EquipmentMonitorDay1
             btnAdd.Click += (sender, args) => BtnAdd_Click(null, EventArgs.Empty);
             btnEdit.Click += (sender, args) => BtnEdit_Click(null, EventArgs.Empty);
             btnDelete.Click += (sender, args) => BtnDelete_Click(null, EventArgs.Empty);
+            btnSend.Click += (sender, args) => BtnSend_Click(null, EventArgs.Empty);
 
             // Items.Add = 按顺序加到工具栏上
             toolStrip.Items.Add(btnStart);
@@ -244,6 +248,10 @@ namespace EquipmentMonitorDay1
             toolStrip.Items.Add(btnAdd);
             toolStrip.Items.Add(btnEdit);
             toolStrip.Items.Add(btnDelete);
+
+            toolStrip.Items.Add(separator3);
+
+            toolStrip.Items.Add(btnSend);
 
             this.Controls.Add(toolStrip);
 
@@ -1042,7 +1050,7 @@ namespace EquipmentMonitorDay1
         /// 发送数据到串口
         /// 可以在工具栏加个"发送"按钮调用
         /// </summary>
-        private void SendData(byte[] data)
+        private void BtnSend_Click(object sender, EventArgs e)
         {
             if (_serialPort == null || !_serialPort.IsOpen)
             {
@@ -1051,8 +1059,10 @@ namespace EquipmentMonitorDay1
             }
             try
             {
-                _serialPort.Write(data, 0, data.Length);
-                AppendLog($"发送 {data.Length} 字节数据");
+                // 发送一段测试数据：01 03 00 00 00 01 84 0A
+                byte[] testData = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0x84, 0x0A };
+                _serialPort.Write(testData, 0, testData.Length);
+                AppendLog($"发送 {testData.Length} 字节数据");
             }
             catch (Exception ex)
             {
