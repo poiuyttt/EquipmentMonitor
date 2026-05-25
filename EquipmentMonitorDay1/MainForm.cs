@@ -217,7 +217,7 @@ namespace EquipmentMonitorDay1
             ToolStripSeparator separator5 = new ToolStripSeparator();
             ToolStripButton btnAutoSend = new ToolStripButton("🔄 自动发送");
             btnAutoSend.CheckOnClick = true;
-
+            ToolStripButton btnShowPacket = new ToolStripButton("📋 报文");
 
             // 事件绑定：工具栏按钮 → 复用你已有的方法
             btnStart.Click += (sender, args) => BtnStart_Click(null, EventArgs.Empty);
@@ -247,6 +247,18 @@ namespace EquipmentMonitorDay1
                     _autoSendTimer.Stop();
                 }
             };
+            btnShowPacket.Click += (sender, args) =>
+            {
+                byte[] packet = BuildReadHoldingRegisters(0x01, 0, 1);
+                AppendLog($"Modbus报文：{BitConverter.ToString(packet)}");
+                AppendLog($"地址：{packet[0]} 功能码：{packet[1]}");
+                AppendLog(
+                    $"起始地址：{packet[2] * 256 + packet[3]} 数量：{packet[4] * 256 + packet[5]}"//(packet[2] << 8) | packet[3]  // 意思完全相同
+
+                );
+                byte[] crc = CalculateCRC16(packet, 6);
+                AppendLog($"  CRC 校验：{crc[0]:X2} {crc[1]:X2}（√ 和报文一致）");
+            };
 
             // Items.Add = 按顺序加到工具栏上
             toolStrip.Items.Add(btnStart);
@@ -274,6 +286,7 @@ namespace EquipmentMonitorDay1
             toolStrip.Items.Add(separator5);
 
             toolStrip.Items.Add(btnAutoSend);
+            toolStrip.Items.Add(btnShowPacket);
 
             this.Controls.Add(toolStrip);
 
@@ -379,7 +392,6 @@ namespace EquipmentMonitorDay1
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
         }
-
 
         /// <summary>
         /// 开始采集
@@ -1185,32 +1197,6 @@ namespace EquipmentMonitorDay1
         }
 
         /// <summary>
-        /// CRC16-Modbus 校验（面试手写频率最高）
-        /// </summary>
-        public static byte[] CalculateCRC16(byte[] data)
-        {
-            ushort crc = 0xFFFF;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                crc ^= data[i];
-                for (int j = 0; j < 8; j++)
-                {
-                    if ((crc & 0x0001) != 0)
-                    {
-                        crc = (ushort)((crc >> 1) ^ 0xA001);
-                    }
-                    else
-                    {
-                        crc >>= 1;
-                    }
-                }
-            }
-            // CRC 低字节在前，高字节在后
-            return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
-        }
-
-        /// <summary>
         /// 实战：解析一段模拟的工业设备报文
         /// PLC 传来 9 个字节，包含温度、压力、状态
         /// </summary>
@@ -1272,7 +1258,6 @@ namespace EquipmentMonitorDay1
                 AppendLog("串口未打开，无法自动发送");
                 _autoSendTimer.Stop();
             }
-
             try
             {
                 // 发送 Modbus 读寄存器测试报文
@@ -1282,8 +1267,50 @@ namespace EquipmentMonitorDay1
             }
             catch (Exception ex)
             {
-                AppendLog($"自动发送失败：{ex.Message}");
+                AppendLog($"自动发送异常：{ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 构建 Modbus RTU 读保持寄存器报文（功能码 0x03）
+        /// </summary>
+        private byte[] BuildReadHoldingRegisters(byte address, ushort startReg, ushort regCount)
+        {
+            byte[] packet = new byte[8];
+
+            packet[0] = address; // 设备地址
+            packet[1] = 0x03; // 功能码
+            packet[2] = (byte)(startReg >> 8); // 起始地址高位
+            packet[3] = (byte)(startReg & 0xFF); // 起始地址低位
+            packet[4] = (byte)(regCount >> 8); // 数量高位
+            packet[5] = (byte)(regCount & 0xFF); // 数量低位
+
+            byte[] crc = CalculateCRC16(packet, 6); // 前 6 字节算 CRC
+            packet[6] = crc[0]; // CRC 低字节
+            packet[7] = crc[1]; // CRC 高字节
+
+            return packet;
+        }
+
+        /// <summary>
+        /// CRC16-Modbus 校验（带长度参数）（面试手写频率最高）
+        /// </summary>
+        private byte[] CalculateCRC16(byte[] data, int length)
+        {
+            ushort crc = 0xFFFF;
+
+            for (int i = 0; i < length; i++)
+            {
+                crc ^= data[i];
+                for (int j = 0; j < 8; j++)
+                {
+                    if ((crc & 0x0001) != 0) //运算符按位与:两个整数逐位做与运算，对应位都为 1 结果才为 1
+                        crc = (ushort)((crc >> 1) ^ 0xA001);
+                    else
+                        crc >>= 1;
+                }
+            }
+            return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
         }
     }
 }

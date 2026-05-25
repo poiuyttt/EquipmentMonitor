@@ -11,3 +11,6 @@ D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMo
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.exe
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\EquipmentMonitorDay1.pdb
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\appsettings.json
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\NModbus4.dll
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\NModbus4.xml
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\Equipmen.857029B1.Up2Date
