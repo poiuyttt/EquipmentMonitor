@@ -1,3 +1,5 @@
+using Modbus.Data;
+using Modbus.Device;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,10 +50,15 @@ namespace EquipmentMonitorDay1
         // ====== 串口通信 ======
         private SerialPort _serialPort;
 
+        private IModbusMaster _modbusMaster;
+
         // ====== 自动发送 ======
         private Timer _autoSendTimer;
 
-        // ===========================
+        // ====== Modbus 从站 ======
+        private ModbusSlave _modbusSlave;
+        private Task _slaveTask;
+        private CancellationTokenSource _slaveCts;
 
         public MainForm()
         {
@@ -218,6 +225,7 @@ namespace EquipmentMonitorDay1
             ToolStripButton btnAutoSend = new ToolStripButton("🔄 自动发送");
             btnAutoSend.CheckOnClick = true;
             ToolStripButton btnShowPacket = new ToolStripButton("📋 报文");
+            ToolStripButton btnRead = new ToolStripButton("📖 读 Modbus");
 
             // 事件绑定：工具栏按钮 → 复用你已有的方法
             btnStart.Click += (sender, args) => BtnStart_Click(null, EventArgs.Empty);
@@ -253,12 +261,12 @@ namespace EquipmentMonitorDay1
                 AppendLog($"Modbus报文：{BitConverter.ToString(packet)}");
                 AppendLog($"地址：{packet[0]} 功能码：{packet[1]}");
                 AppendLog(
-                    $"起始地址：{packet[2] * 256 + packet[3]} 数量：{packet[4] * 256 + packet[5]}"//(packet[2] << 8) | packet[3]  // 意思完全相同
-
+                    $"起始地址：{packet[2] * 256 + packet[3]} 数量：{packet[4] * 256 + packet[5]}" //(packet[2] << 8) | packet[3]  // 意思完全相同
                 );
                 byte[] crc = CalculateCRC16(packet, 6);
                 AppendLog($"  CRC 校验：{crc[0]:X2} {crc[1]:X2}（√ 和报文一致）");
             };
+            btnRead.Click += (sender, args) => ReadModbusRegisters();
 
             // Items.Add = 按顺序加到工具栏上
             toolStrip.Items.Add(btnStart);
@@ -287,7 +295,10 @@ namespace EquipmentMonitorDay1
 
             toolStrip.Items.Add(btnAutoSend);
             toolStrip.Items.Add(btnShowPacket);
-
+            toolStrip.Items.Add(btnRead);
+            ToolStripButton btnStartSlave = new ToolStripButton("🖥 启动从站");
+            btnStartSlave.Click += (sender, args) => StartModbusSlave();
+            toolStrip.Items.Add(btnStartSlave);
             this.Controls.Add(toolStrip);
 
             // ============================================================
@@ -394,6 +405,40 @@ namespace EquipmentMonitorDay1
         }
 
         /// <summary>
+        /// 在 COM6 启动 Modbus RTU 从站（模拟 PLC）
+        /// </summary>
+        private void StartModbusSlave()
+        {
+            if (_modbusSlave != null) return;
+
+            try
+            {
+                SerialPort slavePort = new SerialPort("COM6", 9600, Parity.None, 8, StopBits.One);
+                slavePort.Open();
+                AppendLog($"从站端口已打开：COM6");
+
+                _modbusSlave = ModbusSerialSlave.CreateRtu(1, slavePort);
+                _modbusSlave.DataStore = DataStoreFactory.CreateDefaultDataStore(10, 10, 10, 10);
+                _modbusSlave.DataStore.HoldingRegisters[1] = 85;
+                _modbusSlave.DataStore.HoldingRegisters[2] = 271;
+                _modbusSlave.DataStore.HoldingRegisters[3] = 100;
+
+                _slaveCts = new CancellationTokenSource();
+                _slaveTask = Task.Run(() =>
+                {
+                    AppendLog("从站开始监听...");
+                    _modbusSlave.Listen();
+                });
+
+                AppendLog("Modbus 从站已启动（COM6，地址 1）");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"启动从站失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 开始采集
         /// </summary>
         private void BtnStart_Click(object sender, EventArgs e)
@@ -412,13 +457,19 @@ namespace EquipmentMonitorDay1
                 _serialPort.DataBits = 8; // 数据位
                 _serialPort.StopBits = StopBits.One; // 停止位
                 _serialPort.Parity = Parity.None; // 校验位
+
+                // 串口超时：默认是无限等待，必须显式设置才生效
+                _serialPort.ReadTimeout = 2000; // 读超时 2 秒
+                _serialPort.WriteTimeout = 2000; // 写超时 2 秒
                 // ===================================
 
                 // 串口收到数据时触发
                 _serialPort.DataReceived += SerialPort_DataReceived;
 
                 _serialPort.Open();
-                //TestDataParsing();
+
+                // 创建 Modbus RTU 主站
+                _modbusMaster = ModbusSerialMaster.CreateRtu(_serialPort);
 
                 label1.Text = "PLC-1: 已连接";
                 _lblPLC.Text = "PLC-1: 已连接";
@@ -444,15 +495,30 @@ namespace EquipmentMonitorDay1
             button1.Enabled = true;
             button2.Enabled = false;
 
-            //关闭串口
-            if (_serialPort != null && _serialPort.IsOpen)
-            {
-                _serialPort.Close();
-                _serialPort.Dispose();
-                _serialPort = null;
-            }
-
             _cts?.Cancel();
+
+            // 关闭串口：丢到后台线程 fire-and-forget，不阻塞 UI
+            var port = _serialPort;
+            var master = _modbusMaster;
+            _serialPort = null;
+            _modbusMaster = null;
+
+            if (port != null)
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        // 先 Dispose modbus master，让它不要再访问串口
+                        master?.Dispose();
+
+                        if (port.IsOpen)
+                            port.Close();
+                        port.Dispose();
+                    }
+                    catch { }
+                });
+            }
 
             label1.Text = "PLC-1: 已停止";
             _lblPLC.Text = "PLC-1: 已停止";
@@ -1016,7 +1082,28 @@ namespace EquipmentMonitorDay1
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _cts?.Cancel();
-            _producerTask?.Wait(1000); // 等待最多 1 秒，确保后台线程结束
+
+            // 关闭串口：fire-and-forget，不阻塞窗口关闭
+            var port = _serialPort;
+            var master = _modbusMaster;
+            _serialPort = null;
+            _modbusMaster = null;
+
+            if (port != null)
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        master?.Dispose();
+                        if (port.IsOpen)
+                            port.Close();
+                        port.Dispose();
+                    }
+                    catch { }
+                });
+            }
+
             base.OnFormClosing(e);
         }
 
@@ -1311,6 +1398,40 @@ namespace EquipmentMonitorDay1
                 }
             }
             return new byte[] { (byte)(crc & 0xFF), (byte)(crc >> 8) };
+        }
+
+        /// <summary>
+        /// 用 NModbus4 读取保持寄存器（异步，不阻塞 UI）
+        /// </summary>
+        private async void ReadModbusRegisters()
+        {
+            // 先捕获本地引用，避免读写期间 _modbusMaster 被其他线程置 null
+            var master = _modbusMaster;
+            if (master == null)
+            {
+                AppendLog("Modbus 未连接");
+                return;
+            }
+
+            // 设置串口超时：等 2 秒没回复就放弃
+            master.Transport.ReadTimeout = 2000;
+
+            AppendLog("正在读取寄存器...");
+
+            try
+            {
+                // Task.Run 放到后台线程，避免阻塞 UI
+                ushort[] value = await Task.Run(() => master.ReadHoldingRegisters(1, 0, 3));
+                AppendLog($"寄存器0~2：{value[0]}, {value[1]}, {value[2]}");
+            }
+            catch (TimeoutException)
+            {
+                AppendLog("读取超时：没有从站响应");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"读取寄存器失败：{ex.Message}");
+            }
         }
     }
 }
