@@ -8,6 +8,8 @@ using System.Drawing;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -59,6 +61,11 @@ namespace EquipmentMonitorDay1
         private ModbusSlave _modbusSlave;
         private Task _slaveTask;
         private CancellationTokenSource _slaveCts;
+
+        // ====== TCP 通信 ======
+        private TcpClient _tcpClient;
+        private NetworkStream _tcpStream;
+        private CancellationTokenSource _tcpCts;
 
         public MainForm()
         {
@@ -296,9 +303,15 @@ namespace EquipmentMonitorDay1
             toolStrip.Items.Add(btnAutoSend);
             toolStrip.Items.Add(btnShowPacket);
             toolStrip.Items.Add(btnRead);
+
             ToolStripButton btnStartSlave = new ToolStripButton("🖥 启动从站");
             btnStartSlave.Click += (sender, args) => StartModbusSlave();
             toolStrip.Items.Add(btnStartSlave);
+
+            ToolStripButton btnTcpTest = new ToolStripButton("🌐 TCP 测试");
+            btnTcpTest.Click += async (sender, args) => await TestModbusTcp();
+            toolStrip.Items.Add(btnTcpTest);
+
             this.Controls.Add(toolStrip);
 
             // ============================================================
@@ -402,40 +415,6 @@ namespace EquipmentMonitorDay1
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
-        }
-
-        /// <summary>
-        /// 在 COM6 启动 Modbus RTU 从站（模拟 PLC）
-        /// </summary>
-        private void StartModbusSlave()
-        {
-            if (_modbusSlave != null) return;
-
-            try
-            {
-                SerialPort slavePort = new SerialPort("COM6", 9600, Parity.None, 8, StopBits.One);
-                slavePort.Open();
-                AppendLog($"从站端口已打开：COM6");
-
-                _modbusSlave = ModbusSerialSlave.CreateRtu(1, slavePort);
-                _modbusSlave.DataStore = DataStoreFactory.CreateDefaultDataStore(10, 10, 10, 10);
-                _modbusSlave.DataStore.HoldingRegisters[1] = 85;
-                _modbusSlave.DataStore.HoldingRegisters[2] = 271;
-                _modbusSlave.DataStore.HoldingRegisters[3] = 100;
-
-                _slaveCts = new CancellationTokenSource();
-                _slaveTask = Task.Run(() =>
-                {
-                    AppendLog("从站开始监听...");
-                    _modbusSlave.Listen();
-                });
-
-                AppendLog("Modbus 从站已启动（COM6，地址 1）");
-            }
-            catch (Exception ex)
-            {
-                AppendLog($"启动从站失败：{ex.Message}");
-            }
         }
 
         /// <summary>
@@ -956,7 +935,7 @@ namespace EquipmentMonitorDay1
         private async Task ProduceDataAsync(CancellationToken token)
         {
             // 在后台线程运行，不阻塞 UI
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 Random random = new Random();
                 while (!token.IsCancellationRequested)
@@ -1042,7 +1021,27 @@ namespace EquipmentMonitorDay1
                             );
                         }
                     }
-                    // ================================
+                    // 工业场景：TCP 连接可能意外断开，需要定时检查
+
+                    // 心跳包 = 定时发一段小数据给 PLC，PLC 回复说明还活着
+                    // 收不到回复 → 判定断开 → 自动重连
+
+                    // 在你的生产者循环里可以这样：
+                    if (_tcpClient != null && !_tcpClient.Connected)
+                    {
+                        AppendLog("TCP 断开，尝试重连...");
+                        try
+                        {
+                            _tcpClient.Close();
+                            _tcpClient = new TcpClient();
+                            await _tcpClient.ConnectAsync("192.168.1.100", 502);
+                            AppendLog("TCP 重连成功");
+                        }
+                        catch
+                        {
+                            // 重试
+                        }
+                    }
                 }
             });
         }
@@ -1431,6 +1430,116 @@ namespace EquipmentMonitorDay1
             catch (Exception ex)
             {
                 AppendLog($"读取寄存器失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 在 COM6 启动 Modbus RTU 从站（模拟 PLC）
+        /// </summary>
+        private void StartModbusSlave()
+        {
+            if (_modbusSlave != null)
+                return;
+
+            try
+            {
+                SerialPort slavePort = new SerialPort("COM6", 9600, Parity.None, 8, StopBits.One);
+                slavePort.Open();
+                AppendLog($"从站端口已打开：COM6");
+
+                _modbusSlave = ModbusSerialSlave.CreateRtu(1, slavePort);
+                _modbusSlave.DataStore = DataStoreFactory.CreateDefaultDataStore(10, 10, 10, 10);
+                _modbusSlave.DataStore.HoldingRegisters[1] = 85;
+                _modbusSlave.DataStore.HoldingRegisters[2] = 271;
+                _modbusSlave.DataStore.HoldingRegisters[3] = 100;
+
+                _slaveCts = new CancellationTokenSource();
+                _slaveTask = Task.Run(() =>
+                {
+                    AppendLog("从站开始监听...");
+                    _modbusSlave.Listen();
+                });
+
+                AppendLog("Modbus 从站已启动（COM6，地址 1）");
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"启动从站失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// TCP 测试：连接一个公共测试服务器，收发数据
+        /// </summary>
+        private async Task TestTcpConnection()
+        {
+            try
+            {
+                AppendLog("正在连接 TCP 服务器...");
+
+                _tcpCts = new CancellationTokenSource();
+                _tcpClient = new TcpClient();
+
+                // 异步连接，超时 3 秒
+                var connectTask = _tcpClient.ConnectAsync("www.baidu.com", 80);
+                if (await Task.WhenAny(connectTask, Task.Delay(3000)) == connectTask)
+                {
+                    AppendLog("TCP 连接成功");
+                    _tcpStream = _tcpClient.GetStream();
+
+                    // 发一个 HTTP GET 请求
+                    string httpRequest =
+                        "GET / HTTP/1.1\r\nHost: www.baidu.com\r\nConnection: close\r\n\r\n";
+                    byte[] sendData = Encoding.UTF8.GetBytes(httpRequest);
+                    await _tcpStream.WriteAsync(sendData, 0, sendData.Length, _tcpCts.Token);
+                    AppendLog($"已发送 {sendData.Length} 字节");
+
+                    // 收响应
+                    byte[] buffer = new byte[1024];
+                    int received = await _tcpStream.ReadAsync(
+                        buffer,
+                        0,
+                        buffer.Length,
+                        _tcpCts.Token
+                    );
+                    string response = Encoding.UTF8.GetString(buffer, 0, received);
+                    AppendLog(
+                        $"收到 {received} 字节，前 100 字：{response.Substring(0, Math.Min(100, response.Length))}"
+                    );
+
+                    _tcpClient.Close();
+                }
+                else
+                {
+                    AppendLog("TCP 连接超时");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"TCP 通信失败：{ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Modbus TCP 测试
+        /// </summary>
+        private async Task TestModbusTcp()
+        {
+            try
+            {
+                //连接Modbus TCP 从站（本地测试，自己连自己）
+                var tcpClient = new TcpClient();
+                await tcpClient.ConnectAsync("127.0.0.1", 502);
+                var master = ModbusIpMaster.CreateIp(tcpClient);
+
+                ushort[] values = await master.ReadHoldingRegistersAsync(1, 0, 3);
+                AppendLog($"Modbus TCP 读取：{values[0]}, {values[1]}, {values[2]}");
+
+                tcpClient.Close();
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Modbus TCP 测试失败：{ex.Message}");
             }
         }
     }
