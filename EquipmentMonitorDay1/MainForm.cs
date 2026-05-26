@@ -1,5 +1,6 @@
 using Modbus.Data;
 using Modbus.Device;
+using NPOI.XSSF.UserModel;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -70,6 +71,12 @@ namespace EquipmentMonitorDay1
 
         // ====== SQLite 数据库 ======
         private DatabaseHelper _dbHelper;
+
+        // ====== 报警阈值 ======
+        private double _alarmHigh = 100;
+        private double _alarmLow = 10;
+
+        private Dictionary<string, DateTime> _alarmShown;
 
         public MainForm()
         {
@@ -316,6 +323,10 @@ namespace EquipmentMonitorDay1
             btnTcpTest.Click += async (sender, args) => await TestModbusTcp();
             toolStrip.Items.Add(btnTcpTest);
 
+            ToolStripButton btnExportExcel = new ToolStripButton("📊 导出 Excel");
+            btnExportExcel.Click += (sender, args) => ExportToExcel();
+            toolStrip.Items.Add(btnExportExcel);
+
             this.Controls.Add(toolStrip);
 
             // ============================================================
@@ -443,9 +454,71 @@ namespace EquipmentMonitorDay1
             _dbHelper = new DatabaseHelper();
             _dbHelper.CleanupOldData(); // 启动时清理旧数据
 
+            _numAlarmHigh.Value = (decimal)_alarmHigh;
+            _numAlarmLow.Value = (decimal)_alarmLow;
+
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
+        }
+
+        private void ExportToExcel()
+        {
+            using (SaveFileDialog dlg = new SaveFileDialog())
+            {
+                dlg.Filter = "Excel文件(*.xlsx)|*.xlsx";
+                dlg.FileName = $"设备数据_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        var workbook = new XSSFWorkbook();
+
+                        // Sheet 1：历史数据（最近 24 小时）
+                        var sheet1 = workbook.CreateSheet("历史数据");
+                        var header1 = sheet1.CreateRow(0);
+                        header1.CreateCell(0).SetCellValue("设备名称");
+                        header1.CreateCell(1).SetCellValue("当前值");
+                        header1.CreateCell(2).SetCellValue("单位");
+                        header1.CreateCell(3).SetCellValue("状态");
+                        header1.CreateCell(4).SetCellValue("更新时间");
+
+                        // 从数据库查最近 24 小时的数据
+                        var historyData = _dbHelper.QueryHistory(
+                            "",   // 空字符串表示查所有设备
+                            DateTime.Now.AddDays(-1),
+                            DateTime.Now
+                        );
+
+                        int rowIdx = 1;
+                        foreach (var item in historyData)
+                        {
+                            var row = sheet1.CreateRow(rowIdx++);
+                            row.CreateCell(0).SetCellValue(item.DeviceName);
+                            row.CreateCell(1).SetCellValue(item.Value);
+                            row.CreateCell(2).SetCellValue(item.Unit);
+                            row.CreateCell(3).SetCellValue(item.Status);
+                            row.CreateCell(4).SetCellValue(item.RecordTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+
+                        for (int i = 0; i <= 4; i++)
+                            sheet1.AutoSizeColumn(i);
+
+                        // 写入文件
+                        using (var fs = new FileStream(dlg.FileName, FileMode.Create, FileAccess.Write))
+                        {
+                            workbook.Write(fs);
+                        }
+
+                        AppendLog($"已导出 {historyData.Count} 条历史数据：{dlg.FileName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog($"导出失败：{ex.Message}");
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1033,7 +1106,9 @@ namespace EquipmentMonitorDay1
                             //重新创建并打开
                             if (!int.TryParse(comboBox2.Text, out int baudRateReconnect))
                             {
-                                this.BeginInvoke(new Action(() => AppendLog("重连失败：波特率无效")));
+                                this.BeginInvoke(
+                                    new Action(() => AppendLog("重连失败：波特率无效"))
+                                );
                                 continue;
                             }
                             _serialPort = new SerialPort(
@@ -1119,10 +1194,54 @@ namespace EquipmentMonitorDay1
                 {
                     foreach (var device in _dataList)
                     {
-                        _dbHelper.InsertRecord(device.DeviceName, device.Value,
-                            device.Unit, device.Status);
+                        _dbHelper.InsertRecord(
+                            device.DeviceName,
+                            device.Value,
+                            device.Unit,
+                            device.Status
+                        );
                     }
                     AppendLog($"数据已存入 SQLite：{_dataList.Count} 条");
+                }
+
+                //报警判断
+                foreach (var device in _dataList)
+                {
+                    // 只对温度设备做报警判断
+                    if (device.DeviceName.Contains("温度"))
+                    {
+                        if (device.Value > _alarmHigh || device.Value < _alarmLow)
+                        {
+                            device.Status = "报警";
+
+                            //保存当前时间，避免每500ms弹一次
+                            if (_alarmShown == null)
+                                _alarmShown = new Dictionary<string, DateTime>();
+                            _alarmShown[device.DeviceName] = DateTime.Now;
+
+                            //弹窗
+                            if (
+                                !_alarmShown.ContainsKey(device.DeviceName)
+                                || (DateTime.Now - _alarmShown[device.DeviceName]).TotalSeconds > 30
+                            )
+                            {
+                                //弹窗
+                                MessageBox.Show(
+                                    $"⚠ {device.DeviceName} 超限！当前值：{device.DisplayValue}",
+                                    "设备报警",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning
+                                );
+
+                                //存报警到数据库
+                                _dbHelper.InsertAlarmRecord(
+                                    device.DeviceName,
+                                    device.Value,
+                                    $"超限：{device.DisplayValue}"
+                                );
+                            }
+                        }
+                    }
                 }
 
                 dataGridView1.Refresh();

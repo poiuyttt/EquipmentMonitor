@@ -40,6 +40,13 @@ namespace EquipmentMonitorDay1
                     Unit TEXT NOT NULL,
                     Status TEXT NOT NULL,
                     RecordTime TEXT NOT NULL
+                 );
+                 CREATE TABLE IF NOT EXISTS AlarmRecords (
+                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    DeviceName TEXT NOT NULL,
+                    AlarmValue REAL NOT NULL,
+                    AlarmDesc TEXT NOT NULL,
+                    RecordTime TEXT NOT NULL
                  )";
 
             using (var conn = new SQLiteConnection(_connectionString))
@@ -53,8 +60,12 @@ namespace EquipmentMonitorDay1
                 // 旧表迁移：尝试加 Value 列（如果不存在）
                 try
                 {
-                    using (var cmd = new SQLiteCommand(
-                        "ALTER TABLE DeviceHistory ADD COLUMN Value REAL NOT NULL DEFAULT 0", conn))
+                    using (
+                        var cmd = new SQLiteCommand(
+                            "ALTER TABLE DeviceHistory ADD COLUMN Value REAL NOT NULL DEFAULT 0",
+                            conn
+                        )
+                    )
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -108,7 +119,7 @@ namespace EquipmentMonitorDay1
                 @"
                 SELECT DeviceName, Value, Unit, Status, RecordTime
                 FROM DeviceHistory
-                WHERE DeviceName = @name AND RecordTime >= @start AND RecordTime <= @end
+                WHERE (@name = '' OR DeviceName = @name) AND RecordTime >= @start AND RecordTime <= @end                
                 ORDER BY RecordTime ASC";
 
             using (var conn = new SQLiteConnection(_connectionString))
@@ -166,6 +177,37 @@ namespace EquipmentMonitorDay1
                 }
             }
         }
+
+
+
+
+        public void InsertAlarmRecord(string deviceName, double value, string desc)
+        {
+            string sql =
+                @"
+                INSERT INTO AlarmRecords (DeviceName, AlarmValue, AlarmDesc, RecordTime)
+                VALUES (@deviceName, @alarmValue, @alarmDesc, @time)";
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@deviceName", deviceName);
+                    cmd.Parameters.AddWithValue("@alarmValue", value);
+                    cmd.Parameters.AddWithValue("@alarmDesc", desc);
+                    cmd.Parameters.AddWithValue(
+                        "@time",
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    );
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+
+
+
+
 
         /// <summary>
         /// 历史记录模型

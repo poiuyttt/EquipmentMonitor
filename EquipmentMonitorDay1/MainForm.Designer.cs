@@ -47,6 +47,7 @@ namespace EquipmentMonitorDay1
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this._chartTemperature = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
@@ -72,7 +73,10 @@ namespace EquipmentMonitorDay1
             this.断开设备ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.帮助ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this._chartTemperature = new System.Windows.Forms.DataVisualization.Charting.Chart();
+            this._numAlarmHigh = new System.Windows.Forms.NumericUpDown();
+            this._numAlarmLow = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -81,12 +85,14 @@ namespace EquipmentMonitorDay1
             this.groupBox2.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.tabPage2.SuspendLayout();
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numAlarmHigh)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numAlarmLow)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -242,6 +248,23 @@ namespace EquipmentMonitorDay1
             this.tabPage1.Text = "实时数据";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // _chartTemperature
+            // 
+            chartArea1.Name = "ChartArea1";
+            this._chartTemperature.ChartAreas.Add(chartArea1);
+            this._chartTemperature.Dock = System.Windows.Forms.DockStyle.Bottom;
+            legend1.Name = "Legend1";
+            this._chartTemperature.Legends.Add(legend1);
+            this._chartTemperature.Location = new System.Drawing.Point(3, 64);
+            this._chartTemperature.Name = "_chartTemperature";
+            series1.ChartArea = "ChartArea1";
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this._chartTemperature.Series.Add(series1);
+            this._chartTemperature.Size = new System.Drawing.Size(769, 200);
+            this._chartTemperature.TabIndex = 1;
+            this._chartTemperature.Text = "chart1";
+            // 
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToAddRows = false;
@@ -256,6 +279,10 @@ namespace EquipmentMonitorDay1
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.label6);
+            this.tabPage2.Controls.Add(this.label5);
+            this.tabPage2.Controls.Add(this._numAlarmLow);
+            this.tabPage2.Controls.Add(this._numAlarmHigh);
             this.tabPage2.Controls.Add(this.groupBox5);
             this.tabPage2.Controls.Add(this.checkBox2);
             this.tabPage2.Controls.Add(this.checkBox1);
@@ -503,22 +530,37 @@ namespace EquipmentMonitorDay1
             this.关于ToolStripMenuItem.Text = "关于";
             this.关于ToolStripMenuItem.Click += new System.EventHandler(this.关于ToolStripMenuItem_Click);
             // 
-            // _chartTemperature
+            // _numAlarmHigh
             // 
-            chartArea1.Name = "ChartArea1";
-            this._chartTemperature.ChartAreas.Add(chartArea1);
-            this._chartTemperature.Dock = System.Windows.Forms.DockStyle.Bottom;
-            legend1.Name = "Legend1";
-            this._chartTemperature.Legends.Add(legend1);
-            this._chartTemperature.Location = new System.Drawing.Point(3, 64);
-            this._chartTemperature.Name = "_chartTemperature";
-            series1.ChartArea = "ChartArea1";
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this._chartTemperature.Series.Add(series1);
-            this._chartTemperature.Size = new System.Drawing.Size(769, 200);
-            this._chartTemperature.TabIndex = 1;
-            this._chartTemperature.Text = "chart1";
+            this._numAlarmHigh.Location = new System.Drawing.Point(361, 158);
+            this._numAlarmHigh.Name = "_numAlarmHigh";
+            this._numAlarmHigh.Size = new System.Drawing.Size(120, 21);
+            this._numAlarmHigh.TabIndex = 12;
+            // 
+            // _numAlarmLow
+            // 
+            this._numAlarmLow.Location = new System.Drawing.Point(361, 187);
+            this._numAlarmLow.Name = "_numAlarmLow";
+            this._numAlarmLow.Size = new System.Drawing.Size(120, 21);
+            this._numAlarmLow.TabIndex = 13;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(302, 161);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(53, 12);
+            this.label5.TabIndex = 14;
+            this.label5.Text = "温度上限";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(304, 189);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(53, 12);
+            this.label6.TabIndex = 15;
+            this.label6.Text = "温度下限";
             // 
             // MainForm
             // 
@@ -541,6 +583,7 @@ namespace EquipmentMonitorDay1
             this.groupBox2.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
@@ -549,7 +592,8 @@ namespace EquipmentMonitorDay1
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numAlarmHigh)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this._numAlarmLow)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -597,6 +641,10 @@ namespace EquipmentMonitorDay1
         private System.Windows.Forms.ToolStripMenuItem 保存设置ToolStripMenuItem;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutDeviceCards;
         private System.Windows.Forms.DataVisualization.Charting.Chart _chartTemperature;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.NumericUpDown _numAlarmLow;
+        private System.Windows.Forms.NumericUpDown _numAlarmHigh;
     }
 }
 
