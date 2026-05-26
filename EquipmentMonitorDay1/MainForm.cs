@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 using Timer = System.Windows.Forms.Timer;
 
 namespace EquipmentMonitorDay1
@@ -66,6 +67,9 @@ namespace EquipmentMonitorDay1
         private TcpClient _tcpClient;
         private NetworkStream _tcpStream;
         private CancellationTokenSource _tcpCts;
+
+        // ====== SQLite 数据库 ======
+        private DatabaseHelper _dbHelper;
 
         public MainForm()
         {
@@ -412,6 +416,33 @@ namespace EquipmentMonitorDay1
             _autoSendTimer.Interval = 3000;
             _autoSendTimer.Tick += AutoSendTimer_Tick;
 
+            // ====== Chart 实时曲线 ======
+            _chartTemperature.Series.Clear();
+            _chartTemperature.ChartAreas.Clear();
+
+            // 创建一个绘图区域
+            ChartArea chartArea = new ChartArea();
+            chartArea.AxisY.Title = "温度 (℃)";
+            chartArea.AxisX.Title = "时间";
+            chartArea.AxisX.LabelStyle.Format = "HH:mm:ss";
+            chartArea.AxisX.IntervalType = DateTimeIntervalType.Seconds;
+            _chartTemperature.ChartAreas.Add(chartArea);
+
+            // 创建温度曲线
+            Series seriesTemp = new Series();
+            seriesTemp.Name = "温度";
+            seriesTemp.ChartType = SeriesChartType.Line; // 折线图
+            seriesTemp.BorderWidth = 2; // 线宽
+            seriesTemp.Color = Color.Red; // 红色
+            _chartTemperature.Series.Add(seriesTemp);
+
+            // 记录 60 个点（1 分钟）
+            seriesTemp.Points.Clear();
+
+            // ====== 数据库初始化 ======
+            _dbHelper = new DatabaseHelper();
+            _dbHelper.CleanupOldData(); // 启动时清理旧数据
+
             // ---------- 写一条启动日志 ----------
             AppendLog("系统启动完成");
             AppLogger.Info("系统启动完成");
@@ -432,7 +463,14 @@ namespace EquipmentMonitorDay1
 
                 // ====== 配置串口参数（从界面读取） ======
                 _serialPort.PortName = comboBox1.Text; // 串口号
-                _serialPort.BaudRate = int.Parse(comboBox2.Text); // 波特率
+                if (!int.TryParse(comboBox2.Text, out int baudRate))
+                {
+                    MessageBox.Show("波特率格式不正确");
+                    button1.Enabled = true;
+                    button2.Enabled = false;
+                    return;
+                }
+                _serialPort.BaudRate = baudRate;
                 _serialPort.DataBits = 8; // 数据位
                 _serialPort.StopBits = StopBits.One; // 停止位
                 _serialPort.Parity = Parity.None; // 校验位
@@ -993,9 +1031,14 @@ namespace EquipmentMonitorDay1
                             _serialPort = null;
 
                             //重新创建并打开
+                            if (!int.TryParse(comboBox2.Text, out int baudRateReconnect))
+                            {
+                                this.BeginInvoke(new Action(() => AppendLog("重连失败：波特率无效")));
+                                continue;
+                            }
                             _serialPort = new SerialPort(
                                 comboBox1.Text,
-                                int.Parse(comboBox2.Text),
+                                baudRateReconnect,
                                 Parity.None,
                                 8,
                                 StopBits.One
@@ -1071,7 +1114,32 @@ namespace EquipmentMonitorDay1
 
             if (processed > 0)
             {
+                // 每 5 秒存一次数据库
+                if (_dbHelper != null && DateTime.Now.Second % 5 == 0)
+                {
+                    foreach (var device in _dataList)
+                    {
+                        _dbHelper.InsertRecord(device.DeviceName, device.Value,
+                            device.Unit, device.Status);
+                    }
+                    AppendLog($"数据已存入 SQLite：{_dataList.Count} 条");
+                }
+
                 dataGridView1.Refresh();
+
+                foreach (var device in _dataList)
+                {
+                    if (device.DeviceName == "反应釜A-温度")
+                    {
+                        //添加新数据点（X=时间，Y=数值）
+                        _chartTemperature.Series["温度"].Points.AddXY(DateTime.Now, device.Value);
+
+                        // 保持最多 60 个点，多了删最早的
+                        while (_chartTemperature.Series["温度"].Points.Count > 60)
+                            _chartTemperature.Series["温度"].Points.RemoveAt(0);
+                        break;
+                    }
+                }
             }
         }
 

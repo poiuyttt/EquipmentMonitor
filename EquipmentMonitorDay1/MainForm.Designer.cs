@@ -30,8 +30,12 @@ namespace EquipmentMonitorDay1
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.flowLayoutDeviceCards = new System.Windows.Forms.FlowLayoutPanel();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
@@ -68,7 +72,7 @@ namespace EquipmentMonitorDay1
             this.断开设备ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.帮助ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.flowLayoutDeviceCards = new System.Windows.Forms.FlowLayoutPanel();
+            this._chartTemperature = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.tableLayoutPanel1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -82,6 +86,7 @@ namespace EquipmentMonitorDay1
             this.groupBox5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -113,6 +118,14 @@ namespace EquipmentMonitorDay1
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "设备状态";
+            // 
+            // flowLayoutDeviceCards
+            // 
+            this.flowLayoutDeviceCards.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.flowLayoutDeviceCards.Location = new System.Drawing.Point(3, 190);
+            this.flowLayoutDeviceCards.Name = "flowLayoutDeviceCards";
+            this.flowLayoutDeviceCards.Size = new System.Drawing.Size(328, 120);
+            this.flowLayoutDeviceCards.TabIndex = 1;
             // 
             // label1
             // 
@@ -219,6 +232,7 @@ namespace EquipmentMonitorDay1
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this._chartTemperature);
             this.tabPage1.Controls.Add(this.dataGridView1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
@@ -489,13 +503,22 @@ namespace EquipmentMonitorDay1
             this.关于ToolStripMenuItem.Text = "关于";
             this.关于ToolStripMenuItem.Click += new System.EventHandler(this.关于ToolStripMenuItem_Click);
             // 
-            // flowLayoutDeviceCards
+            // _chartTemperature
             // 
-            this.flowLayoutDeviceCards.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.flowLayoutDeviceCards.Location = new System.Drawing.Point(3, 190);
-            this.flowLayoutDeviceCards.Name = "flowLayoutDeviceCards";
-            this.flowLayoutDeviceCards.Size = new System.Drawing.Size(328, 120);
-            this.flowLayoutDeviceCards.TabIndex = 1;
+            chartArea1.Name = "ChartArea1";
+            this._chartTemperature.ChartAreas.Add(chartArea1);
+            this._chartTemperature.Dock = System.Windows.Forms.DockStyle.Bottom;
+            legend1.Name = "Legend1";
+            this._chartTemperature.Legends.Add(legend1);
+            this._chartTemperature.Location = new System.Drawing.Point(3, 64);
+            this._chartTemperature.Name = "_chartTemperature";
+            series1.ChartArea = "ChartArea1";
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this._chartTemperature.Series.Add(series1);
+            this._chartTemperature.Size = new System.Drawing.Size(769, 200);
+            this._chartTemperature.TabIndex = 1;
+            this._chartTemperature.Text = "chart1";
             // 
             // MainForm
             // 
@@ -526,6 +549,7 @@ namespace EquipmentMonitorDay1
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this._chartTemperature)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -572,6 +596,7 @@ namespace EquipmentMonitorDay1
         private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 保存设置ToolStripMenuItem;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutDeviceCards;
+        private System.Windows.Forms.DataVisualization.Charting.Chart _chartTemperature;
     }
 }
 

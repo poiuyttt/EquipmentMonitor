@@ -14,3 +14,5 @@ D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\appsettings
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\NModbus4.dll
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\NModbus4.xml
 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\obj\Debug\Equipmen.857029B1.Up2Date
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\System.Data.SQLite.dll
+D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\bin\Debug\System.Data.SQLite.xml

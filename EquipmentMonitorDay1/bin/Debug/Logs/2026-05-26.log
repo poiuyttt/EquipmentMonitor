@@ -1,3 +1,41 @@
 00:04:04[INFO]系统启动完成
 00:35:21[INFO]系统启动完成
 00:35:50[INFO]系统启动完成
+13:57:39[INFO]系统启动完成
+13:58:47[INFO]系统启动完成
+14:03:28[INFO]系统启动完成
+17:14:31[INFO]系统启动完成
+17:16:53[ERROR]UI 线程未处理异常
+异常：SQL logic error
+table DeviceHistory has no column named Value
+ 堆栈：   在 System.Data.SQLite.SQLite3.Prepare(SQLiteConnection cnn, SQLiteCommand command, String strSql, SQLiteStatement previous, UInt32 timeoutMS, String& strRemain)
+   在 System.Data.SQLite.SQLiteCommand.BuildNextCommand()
+   在 System.Data.SQLite.SQLiteCommand.GetStatement(Int32 index)
+   在 System.Data.SQLite.SQLiteDataReader.NextResult()
+   在 System.Data.SQLite.SQLiteDataReader..ctor(SQLiteCommand cmd, CommandBehavior behave)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteReader(CommandBehavior behavior)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteNonQuery(CommandBehavior behavior)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteNonQuery()
+   在 EquipmentMonitorDay1.DatabaseHelper.InsertRecord(String deviceName, Double value, String unit, String status) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\DatabaseHelper.cs:行号 76
+   在 EquipmentMonitorDay1.MainForm.ConsumeTimer_Tick(Object sender, EventArgs e) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 1110
+   在 System.Windows.Forms.Timer.OnTick(EventArgs e)
+   在 System.Windows.Forms.Timer.TimerNativeWindow.WndProc(Message& m)
+   在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+17:17:00[INFO]系统启动完成
+17:19:15[ERROR]UI 线程未处理异常
+异常：SQL logic error
+table DeviceHistory has no column named Value
+ 堆栈：   在 System.Data.SQLite.SQLite3.Prepare(SQLiteConnection cnn, SQLiteCommand command, String strSql, SQLiteStatement previous, UInt32 timeoutMS, String& strRemain)
+   在 System.Data.SQLite.SQLiteCommand.BuildNextCommand()
+   在 System.Data.SQLite.SQLiteCommand.GetStatement(Int32 index)
+   在 System.Data.SQLite.SQLiteDataReader.NextResult()
+   在 System.Data.SQLite.SQLiteDataReader..ctor(SQLiteCommand cmd, CommandBehavior behave)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteReader(CommandBehavior behavior)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteNonQuery(CommandBehavior behavior)
+   在 System.Data.SQLite.SQLiteCommand.ExecuteNonQuery()
+   在 EquipmentMonitorDay1.DatabaseHelper.InsertRecord(String deviceName, Double value, String unit, String status) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\DatabaseHelper.cs:行号 76
+   在 EquipmentMonitorDay1.MainForm.ConsumeTimer_Tick(Object sender, EventArgs e) 位置 D:\WinForms\Demo\EquipmentMonitorDay1\EquipmentMonitorDay1\MainForm.cs:行号 1110
+   在 System.Windows.Forms.Timer.OnTick(EventArgs e)
+   在 System.Windows.Forms.Timer.TimerNativeWindow.WndProc(Message& m)
+   在 System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+19:12:32[INFO]系统启动完成

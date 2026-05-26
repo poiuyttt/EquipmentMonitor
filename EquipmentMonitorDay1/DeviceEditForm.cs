@@ -37,6 +37,8 @@ namespace EquipmentMonitorDay1
         {
             InitializeComponent();
             this.Text = "添加设备";
+            _numValue.Maximum = 10000;
+            _numValue.DecimalPlaces = 1;
         }
     }
 }
