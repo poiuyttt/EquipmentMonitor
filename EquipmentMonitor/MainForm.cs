@@ -1,4 +1,4 @@
-using Modbus.Data;
+﻿using Modbus.Data;
 using Modbus.Device;
 using NPOI.XSSF.UserModel;
 using System;
@@ -1336,7 +1336,7 @@ namespace EquipmentMonitorDay1
         {
             try
             {
-                string appName = "EquipmentMonitorDay1";
+                string appName = "EquipmentMonitor";
                 string appPath = Application.ExecutablePath;
 
                 using (
@@ -1365,7 +1365,7 @@ namespace EquipmentMonitorDay1
         {
             try
             {
-                string appName = "EquipmentMonitorDay1";
+                string appName = "EquipmentMonitor";
 
                 using (
                     var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(

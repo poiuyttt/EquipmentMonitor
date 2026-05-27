@@ -1,7 +1,7 @@
-@echo off
+﻿@echo off
 title Watchdog - Equipment Monitor
 
-set EXE=%~dp0bin\Debug\EquipmentMonitorDay1.exe
+set EXE=%~dp0bin\Debug\EquipmentMonitor.exe
 
 :loop
 echo [%date% %time%] Starting...
